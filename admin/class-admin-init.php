@@ -34,9 +34,11 @@ class Contact_Form_whatsapp_Integration_abn_Admin extends Contact_Form_whatsapp_
 			$url = $_POST['api_urls'];
 			$phone = $_POST['phone_parameter_name'];
 			$message = $_POST['message_parameter_name'];
+			$auth = $_POST['auth'];
 			update_option(Contact_FormWI_DB_SLUG.'api_urls',$url);
 			update_option(Contact_FormWI_DB_SLUG.'phone_parameter_name',$phone);
 			update_option(Contact_FormWI_DB_SLUG.'message_parameter_name',$message);
+			update_option(Contact_FormWI_DB_SLUG.'Authentication',$auth);
 		}
 	}
 

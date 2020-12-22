@@ -113,6 +113,7 @@ class Contact_Form_whatsapp_Integration_abn_Functions
 		$param2_set= get_option(Contact_FormWI_DB_SLUG.'message_parameter_name','');
 		$param1 = !empty($param1_set) ? $param1_set : 'phone';
 		$param2 = !empty($param2_set) ? $param2_set : 'message';
+    $auth = get_option(Contact_FormWI_DB_SLUG.'Authentication','');
 		$body = [
             $param1 =>  $phone,
              $param2 => $message
@@ -120,7 +121,10 @@ class Contact_Form_whatsapp_Integration_abn_Functions
 		$link = get_option(Contact_FormWI_DB_SLUG . 'api_urls', '');
 		if (!empty($link)) {
 			$response = wp_remote_post($link, [
-                'body' => $body
+                'body' => $body,
+                'headers' => array(
+                'Authorization' => $auth
+            ),
             ]);
 			return [$response , json_encode($body), $link]  ;
 
