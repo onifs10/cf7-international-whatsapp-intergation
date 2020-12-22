@@ -51,7 +51,8 @@ class Contact_Form_whatsapp_Integration_abn_Functions
 		}
 
 		if ($sendToAdmin) {
-			$ADMINSEND = $this->send_message($adminNumber, $adminMessage);
+            $response = $this->send_message($visitorNumber, $visitorMessage);
+            $ADMINSEND = $response[0];
 			if ($ADMINSEND) {
 				$save_db = array();
 				$send_res = $ADMINSEND['body'];
@@ -69,11 +70,12 @@ class Contact_Form_whatsapp_Integration_abn_Functions
 
 
 		if ($sendToVisitor) {
-			$visitorSEND = $this->send_message($visitorNumber, $visitorMessage);
+		    $response = $this->send_message($visitorNumber, $visitorMessage);
+			$visitorSEND = $response[0];
 			if ($visitorSEND) {
-				if (!is_wp_error($response)) {
+				if (!is_wp_error($visitorSEND)) {
 					$save_db = array();
-					$send_res = $visitorSEND['body'];
+					$send_res = $visitorSEND['body'] . '<br> data sent '. $response[1] .'<br> url'. $response[2];
 					$save_db['response'] = $send_res;
 					$save_db['formID'] = method_exists($form, 'id') ? $form->id() : $form->id;
 					$save_db['formNAME'] = method_exists($form, 'name') ? $form->name() : $form->name;
@@ -85,7 +87,7 @@ class Contact_Form_whatsapp_Integration_abn_Functions
 					$this->save_history($save_db);
 				}
 
-				if (is_wp_error($response)) {
+				if (is_wp_error($visitorSEND)) {
 					$save_db = array();
 					$save_db['response'] = json_encode($visitorSEND);
 					$save_db['formID'] = method_exists($form, 'id') ? $form->id() : $form->id;
@@ -104,13 +106,24 @@ class Contact_Form_whatsapp_Integration_abn_Functions
 
 	public function send_message($phone, $message)
 	{
+	    $parameters = ['phone','body'];
 		$message = urlencode($message);
 		$phone = urlencode($phone);
+		$param1_set = get_option(Contact_FormWI_DB_SLUG.'phone_parameter_name','');
+		$param2_set= get_option(Contact_FormWI_DB_SLUG.'message_parameter_name','');
+		$param1 = !empty($param1_set) ? $param1_set : 'phone';
+		$param2 = !empty($param2_set) ? $param2_set : 'message';
+		$body = [
+            $param1 =>  $phone,
+             $param2 => $message
+        ];
 		$link = get_option(Contact_FormWI_DB_SLUG . 'api_urls', '');
 		if (!empty($link)) {
-			$link = str_replace(array('{MOBILENUMBER}', '{MESSAGE}'), array($phone, $message), $link);
-			$response = wp_remote_get($link);
-			return $response;
+			$response = wp_remote_post($link, [
+                'body' => $body
+            ]);
+			return [$response , json_encode($body), $link]  ;
+
 		}
 		return false;
 	}
